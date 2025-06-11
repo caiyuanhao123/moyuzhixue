@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学习分析 - 墨语智学</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.5.0/echarts.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2962FF',
+                        secondary: '#1A237E',
+                        success: '#4CAF50',
+                        error: '#F44336'
+                    },
+                    borderRadius: {
+                        'none': '0px',
+                        'sm': '2px',
+                        DEFAULT: '4px',
+                        'md': '8px',
+                        'lg': '12px',
+                        'xl': '16px',
+                        '2xl': '20px',
+                        '3xl': '24px',
+                        'full': '9999px',
+                        'button': '4px'
+                    },
+                    fontFamily: {
+                        'sans': ['Poppins', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            min-height: 1024px;
+            font-family: 'Poppins', sans-serif;
+            background-color: #F5F7FF;
+        }
+        .glass-effect {
+            backdrop-filter: blur(8px);
+            background-color: rgba(255, 255, 255, 0.95);
+        }
+        .dropdown-enter {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        .dropdown-enter-active {
+            opacity: 1;
+            transform: translateY(0);
+            transition: all 0.2s ease;
+        }
+        .dropdown-exit {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .dropdown-exit-active {
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.2s ease;
+        }
+        .chart-container {
+            height: 300px;
+        }
+        .progress-ring {
+            width: 120px;
+            height: 120px;
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(41, 98, 255, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 (与首页一致) -->
+    <nav class="flex items-center justify-between px-6 lg:px-12 h-16 bg-white/90 backdrop-blur-md fixed top-0 left-0 right-0 z-50 border-b border-blue-50">
+        <div class="flex items-center gap-8 lg:gap-16">
+            <a href="墨语智学首页.html" class="flex items-center gap-3">
+                <span class="text-primary text-2xl font-bold tracking-tight">墨语智学</span>
+            </a>
+            <div class="hidden lg:flex items-center gap-8">
+                <a href="墨语智学计划.html" class="text-gray-700 hover:text-primary transition-colors font-medium">备考规划</a>
+                <a href="#" class="text-gray-700 hover:text-primary transition-colors font-medium">在线教学</a>
+                <a href="墨语智学真题.html" class="text-gray-700 hover:text-primary transition-colors font-medium">真题练习</a>
+                <a href="#" class="text-gray-700 hover:text-primary transition-colors font-medium">学习社区</a>
+            </div>
+        </div>
+        
+        <!-- 动态登录/用户区域 -->
+        <div class="flex items-center gap-4 lg:gap-6" id="auth-section">
+            <div id="login-btn-container">
+                <a href="墨语智学登录.html" class="flex items-center px-4 lg:px-6 py-2 bg-blue-50 text-primary rounded-button hover:bg-blue-100 transition-colors">
+                    <span class="whitespace-nowrap font-medium text-sm lg:text-base">登录</span>
+                </a>
+            </div>
+            <a href="墨语智学聊天.html" class="flex items-center px-4 lg:px-6 py-2 bg-primary text-white rounded-button hover:bg-secondary transition-colors">
+                <span class="whitespace-nowrap font-medium text-sm lg:text-base">免费试用</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- 主内容区域 -->
+    <main class="pt-24 pb-16 max-w-[1440px] mx-auto px-6">
+        <!-- 页面标题和操作按钮 -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+            <h1 class="text-2xl lg:text-3xl font-bold text-secondary mb-4 md:mb-0">学习分析中心</h1>
+            <div class="flex gap-3">
+                <button class="flex items-center gap-2 px-4 lg:px-6 py-2 bg-white text-primary border border-primary rounded-button hover:bg-blue-50 transition-colors">
+                    <i class="fas fa-download"></i>
+                    <span>导出报告</span>
+                </button>
+                <button class="flex items-center gap-2 px-4 lg:px-6 py-2 bg-white text-gray-700 border border-gray-300 rounded-button hover:bg-gray-50 transition-colors">
+                    <i class="fas fa-filter"></i>
+                    <span>筛选</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 学习概览 -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-semibold text-secondary mb-2">CEFR 等级</h3>
+                        <p class="text-gray-600 text-sm">当前英语水平</p>
+                    </div>
+                    <div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center text-primary text-2xl">
+                        B2
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <div class="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
+                        <div class="h-full bg-gradient-to-r from-primary to-secondary" style="width: 75%"></div>
+                    </div>
+                    <p class="text-gray-600 text-xs mt-2">下一等级: C1 (85%)</p>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-semibold text-secondary mb-2">学习时长</h3>
+                        <p class="text-gray-600 text-sm">本周学习时间</p>
+                    </div>
+                    <div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center text-primary text-2xl">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <p class="text-2xl font-bold text-secondary">12.5 <span class="text-sm font-normal text-gray-600">小时</span></p>
+                    <p class="text-gray-600 text-xs mt-1">较上周 +2.3小时</p>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-semibold text-secondary mb-2">词汇量</h3>
+                        <p class="text-gray-600 text-sm">已掌握词汇</p>
+                    </div>
+                    <div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center text-primary text-2xl">
+                        <i class="fas fa-book"></i>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <p class="text-2xl font-bold text-secondary">4,250 <span class="text-sm font-normal text-gray-600">个</span></p>
+                    <p class="text-gray-600 text-xs mt-1">本周新增 120个</p>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-semibold text-secondary mb-2">学习效率</h3>
+                        <p class="text-gray-600 text-sm">知识掌握率</p>
+                    </div>
+                    <div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center text-primary text-2xl">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <p class="text-2xl font-bold text-secondary">78%</p>
+                    <p class="text-gray-600 text-xs mt-1">较上周 +5%</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 能力分析 -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-xl font-semibold text-secondary mb-4">能力雷达图</h3>
+                <div class="chart-container" id="radarChart"></div>
+            </div>
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-xl font-semibold text-secondary mb-4">技能分布</h3>
+                <div class="chart-container" id="skillsChart"></div>
+            </div>
+        </div>
+
+        <!-- 学习趋势 -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-xl font-semibold text-secondary mb-4">学习时长趋势</h3>
+                <div class="chart-container" id="studyTimeChart"></div>
+            </div>
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-xl font-semibold text-secondary mb-4">词汇量增长</h3>
+                <div class="chart-container" id="vocabularyChart"></div>
+            </div>
+        </div>
+
+        <!-- 学习建议 -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <h3 class="text-xl font-semibold text-secondary mb-4">个性化学习建议</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-blue-50 p-6 rounded-lg card-hover">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h4 class="font-medium text-secondary mb-2">听力提升计划</h4>
+                            <p class="text-gray-600 text-sm">针对你的听力薄弱环节</p>
+                        </div>
+                        <div class="text-yellow-500">
+                            <i class="fas fa-star"></i>
+                            <span>4.8</span>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <div class="h-1 w-full bg-gray-200 rounded-full">
+                            <div class="h-1 bg-primary rounded-full" style="width: 85%"></div>
+                        </div>
+                        <p class="text-gray-600 text-xs mt-1">匹配度 85%</p>
+                    </div>
+                    <button class="w-full py-2 bg-primary text-white rounded-button hover:bg-secondary transition-colors">
+                        查看详情
+                    </button>
+                </div>
+                <div class="bg-blue-50 p-6 rounded-lg card-hover">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h4 class="font-medium text-secondary mb-2">阅读强化训练</h4>
+                            <p class="text-gray-600 text-sm">提升阅读速度和理解力</p>
+                        </div>
+                        <div class="text-yellow-500">
+                            <i class="fas fa-star"></i>
+                            <span>4.7</span>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <div class="h-1 w-full bg-gray-200 rounded-full">
+                            <div class="h-1 bg-primary rounded-full" style="width: 78%"></div>
+                        </div>
+                        <p class="text-gray-600 text-xs mt-1">匹配度 78%</p>
+                    </div>
+                    <button class="w-full py-2 bg-primary text-white rounded-button hover:bg-secondary transition-colors">
+                        查看详情
+                    </button>
+                </div>
+                <div class="bg-blue-50 p-6 rounded-lg card-hover">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h4 class="font-medium text-secondary mb-2">写作技巧课程</h4>
+                            <p class="text-gray-600 text-sm">提高写作表达能力</p>
+                        </div>
+                        <div class="text-yellow-500">
+                            <i class="fas fa-star"></i>
+                            <span>4.6</span>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <div class="h-1 w-full bg-gray-200 rounded-full">
+                            <div class="h-1 bg-primary rounded-full" style="width: 72%"></div>
+                        </div>
+                        <p class="text-gray-600 text-xs mt-1">匹配度 72%</p>
+                    </div>
+                    <button class="w-full py-2 bg-primary text-white rounded-button hover:bg-secondary transition-colors">
+                        查看详情
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 详细分析 -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <h3 class="text-xl font-semibold text-secondary mb-4">详细分析报告</h3>
+            <div class="space-y-6">
+                <div>
+                    <h4 class="font-medium text-secondary mb-3">优势分析</h4>
+                    <ul class="list-disc pl-5 space-y-2 text-gray-700">
+                        <li>阅读理解和词汇量表现优异，超过85%的同水平学习者</li>
+                        <li>语法知识扎实，准确率达到92%</li>
+                        <li>学习坚持度高，每周学习时间稳定在12小时以上</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-medium text-secondary mb-3">待提升领域</h4>
+                    <ul class="list-disc pl-5 space-y-2 text-gray-700">
+                        <li>听力理解能力相对较弱，尤其是长对话和讲座部分</li>
+                        <li>口语表达流畅度需要加强，建议增加口语练习频率</li>
+                        <li>写作中的复杂句式使用较少，可以学习更多高级表达</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-medium text-secondary mb-3">学习建议</h4>
+                    <ul class="list-disc pl-5 space-y-2 text-gray-700">
+                        <li>每天安排30分钟听力专项训练，重点练习长对话和讲座</li>
+                        <li>每周完成2篇写作练习，尝试使用更多复杂句式</li>
+                        <li>参加线上口语交流活动，每周至少3次，每次15分钟</li>
+                        <li>继续巩固词汇学习，每天复习50个核心词汇</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // 内嵌的auth模块
+        const authModule = (function() {
+            // 用户数据存储键名
+            const USER_STORAGE_KEY = 'moyu_user';
+            
+            // DOM元素ID常量
+            const AUTH_SECTION_ID = 'auth-section';
+            const LOGIN_BTN_CONTAINER_ID = 'login-btn-container';
+            
+            // 当前用户数据
+            let currentUser = null;
+            
+            // 初始化函数 - 在所有页面加载时调用
+            function initialize() {
+                // 从本地存储加载用户数据
+                loadUserData();
+                
+                // 更新UI
+                updateAuthUI();
+            }
+            
+            // 加载用户数据
+            function loadUserData() {
+                const userData = localStorage.getItem(USER_STORAGE_KEY);
+                if (userData) {
+                    currentUser = JSON.parse(userData);
+                }
+            }
+            
+            // 保存用户数据
+            function saveUserData(user) {
+                localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+                currentUser = user;
+            }
+            
+            // 清除用户数据
+            function clearUserData() {
+                localStorage.removeItem(USER_STORAGE_KEY);
+                currentUser = null;
+            }
+            
+            // 处理登录
+            function handleLogin(userData) {
+                saveUserData(userData);
+                updateAuthUI();
+            }
+            
+            // 处理登出
+            function handleLogout() {
+                clearUserData();
+                updateAuthUI();
+            }
+            
+            // 检查登录状态
+            function isLoggedIn() {
+                return currentUser !== null;
+            }
+            
+            // 获取当前用户
+            function getCurrentUser() {
+                return currentUser;
+            }
+            
+            // 更新认证UI
+            function updateAuthUI() {
+                const authSection = document.getElementById(AUTH_SECTION_ID);
+                const loginBtnContainer = document.getElementById(LOGIN_BTN_CONTAINER_ID);
+                
+                if (!loginBtnContainer) return;
+                
+                // 清除现有内容
+                loginBtnContainer.innerHTML = '';
+                
+                if (isLoggedIn()) {
+                    // 创建用户头像和下拉菜单
+                    createUserDropdown(loginBtnContainer);
+                } else {
+                    // 创建登录按钮
+                    createLoginButton(loginBtnContainer);
+                }
+            }
+            
+            // 创建登录按钮
+            function createLoginButton(container) {
+                const loginBtn = document.createElement('a');
+                loginBtn.href = '墨语智学登录.html';
+                loginBtn.className = 'flex items-center px-4 lg:px-6 py-2 bg-blue-50 text-primary rounded-button hover:bg-blue-100 transition-colors';
+                loginBtn.innerHTML = '<span class="whitespace-nowrap font-medium text-sm lg:text-base">登录</span>';
+                
+                container.appendChild(loginBtn);
+            }
+            
+            // 创建用户下拉菜单
+            function createUserDropdown(container) {
+                // 用户头像按钮
+                const avatarBtn = document.createElement('div');
+                avatarBtn.className = 'relative group';
+                avatarBtn.id = 'user-dropdown';
+                
+                // 头像图片
+                const avatarImg = document.createElement('img');
+                avatarImg.src = currentUser.avatar || 'https://imgur.la/images/2025/06/07/94B2FFC12D41C799B69B2668BBA16BE7.jpg';
+                avatarImg.alt = currentUser.name || '用户';
+                avatarImg.className = 'w-8 h-8 rounded-full cursor-pointer object-cover';
+                avatarImg.style.minWidth = '32px';
+                
+                // 下拉菜单
+                const dropdownMenu = document.createElement('div');
+                dropdownMenu.className = 'absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50 origin-top-right transform transition-all duration-200 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100';
+                dropdownMenu.style.transformOrigin = 'top right';
+                
+                dropdownMenu.innerHTML = `
+                    <div class="py-1" role="menu" aria-orientation="vertical">
+                        <div class="px-4 py-2 border-b border-gray-100">
+                            <p class="text-sm font-medium text-gray-900">${currentUser.name || '用户'}</p>
+                            <p class="text-xs text-gray-500">${currentUser.username || ''}</p>
+                        </div>
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-primary transition-colors" role="menuitem">
+                            <i class="fas fa-user mr-2"></i>个人中心
+                        </a>
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-primary transition-colors" role="menuitem">
+                            <i class="fas fa-cog mr-2"></i>设置
+                        </a>
+                        <a href="#" id="logout-btn" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-primary transition-colors" role="menuitem">
+                            <i class="fas fa-sign-out-alt mr-2"></i>退出登录
+                        </a>
+                    </div>
+                `;
+                
+                avatarBtn.appendChild(avatarImg);
+                avatarBtn.appendChild(dropdownMenu);
+                container.appendChild(avatarBtn);
+                
+                // 添加登出按钮事件
+                const logoutBtn = dropdownMenu.querySelector('#logout-btn');
+                if (logoutBtn) {
+                    logoutBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        handleLogout();
+                    });
+                }
+                
+                // 点击外部关闭菜单
+                document.addEventListener('click', function(e) {
+                    if (!avatarBtn.contains(e.target)) {
+                        dropdownMenu.classList.remove('opacity-100', 'scale-100');
+                        dropdownMenu.classList.add('opacity-0', 'scale-95');
+                    }
+                });
+            }
+            
+            // 公共API
+            return {
+                initialize,
+                handleLogin,
+                handleLogout,
+                isLoggedIn,
+                getCurrentUser
+            };
+        })();
+
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化auth模块
+            authModule.initialize();
+            
+            // 初始化图表
+            initCharts();
+        });
+
+        // 初始化图表
+        function initCharts() {
+            // 雷达图
+            const radarChart = echarts.init(document.getElementById('radarChart'));
+            radarChart.setOption({
+                animation: false,
+                color: ['#2962FF'],
+                radar: {
+                    indicator: [
+                        { name: '听力', max: 100 },
+                        { name: '口语', max: 100 },
+                        { name: '阅读', max: 100 },
+                        { name: '写作', max: 100 },
+                        { name: '词汇', max: 100 },
+                        { name: '语法', max: 100 }
+                    ],
+                    splitArea: {
+                        show: false
+                    },
+                    axisLine: {
+                        lineStyle: {
+                            color: '#E5E7EB'
+                        }
+                    },
+                    splitLine: {
+                        lineStyle: {
+                            color: '#E5E7EB'
+                        }
+                    }
+                },
+                series: [{
+                    type: 'radar',
+                    data: [{
+                        value: [78, 72, 88, 75, 85, 92],
+                        name: '能力分布',
+                        areaStyle: {
+                            color: 'rgba(41, 98, 255, 0.2)'
+                        },
+                        lineStyle: {
+                            width: 2
+                        },
+                        symbolSize: 4
+                    }]
+                }]
+            });
+
+            // 技能分布图
+            const skillsChart = echarts.init(document.getElementById('skillsChart'));
+            skillsChart.setOption({
+                animation: false,
+                color: ['#2962FF', '#1A237E', '#4CAF50', '#9C27B0', '#FF9800'],
+                tooltip: {
+                    trigger: 'item',
+                    formatter: '{a} <br/>{b}: {c} ({d}%)'
+                },
+                legend: {
+                    orient: 'vertical',
+                    right: 10,
+                    top: 'center',
+                    data: ['听力', '口语', '阅读', '写作', '词汇']
+                },
+                series: [
+                    {
+                        name: '技能分布',
+                        type: 'pie',
+                        radius: ['50%', '70%'],
+                        avoidLabelOverlap: false,
+                        itemStyle: {
+                            borderRadius: 4,
+                            borderColor: '#fff',
+                            borderWidth: 2
+                        },
+                        label: {
+                            show: false,
+                            position: 'center'
+                        },
+                        emphasis: {
+                            label: {
+                                show: true,
+                                fontSize: '18',
+                                fontWeight: 'bold'
+                            }
+                        },
+                        labelLine: {
+                            show: false
+                        },
+                        data: [
+                            { value: 78, name: '听力' },
+                            { value: 72, name: '口语' },
+                            { value: 88, name: '阅读' },
+                            { value: 75, name: '写作' },
+                            { value: 85, name: '词汇' }
+                        ]
+                    }
+                ]
+            });
+
+            // 学习时长趋势图
+            const studyTimeChart = echarts.init(document.getElementById('studyTimeChart'));
+            studyTimeChart.setOption({
+                animation: false,
+                color: ['#2962FF'],
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'shadow'
+                    }
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    data: ['1月', '2月', '3月', '4月', '5月', '6月', '7月'],
+                    axisLine: {
+                        lineStyle: {
+                            color: '#E5E7EB'
+                        }
+                    }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '小时',
+                    axisLine: {
+                        lineStyle: {
+                            color: '#E5E7EB'
+                        }
+                    },
+                    splitLine: {
+                        lineStyle: {
+                            color: '#E5E7EB'
+                        }
+                    }
+                },
+                series: [
+                    {
+                        name: '学习时长',
+                        type: 'bar',
+                        barWidth: '60%',
+                        data: [10, 12, 15, 14, 16, 18, 20],
+                        itemStyle: {
+                            borderRadius: [4, 4, 0, 0]
+                        }
+                    }
+                ]
+            });
+
+            // 词汇量增长图
+            const vocabularyChart = echarts.init(document.getElementById('vocabularyChart'));
+            vocabularyChart.setOption({
+                animation: false,
+                color: ['#1A237E'],
+                tooltip: {
+                    trigger: 'axis'
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    boundaryGap: false,
+                    data: ['1月', '2月', '3月', '4月', '5月', '6月', '7月'],
+                    axisLine: {
+                        lineStyle: {
+                            color: '#E5E7EB'
+                        }
+                    }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '词汇量',
+                    axisLine: {
+                        lineStyle: {
+                            color: '#E5E7EB'
+                        }
+                    },
+                    splitLine: {
+                        lineStyle: {
+                            color: '#E5E7EB'
+                        }
+                    }
+                },
+                series: [
+                    {
+                        name: '词汇量',
+                        type: 'line',
+                        stack: '总量',
+                        data: [2500, 2800, 3200, 3500, 3800, 4100, 4500],
+                        smooth: true,
+                        lineStyle: {
+                            width: 3
+                        },
+                        areaStyle: {
+                            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                {
+                                    offset: 0,
+                                    color: 'rgba(26, 35, 126, 0.3)'
+                                },
+                                {
+                                    offset: 1,
+                                    color: 'rgba(26, 35, 126, 0.1)'
+                                }
+                            ])
+                        }
+                    }
+                ]
+            });
+
+            // 响应式调整图表大小
+            window.addEventListener('resize', function() {
+                radarChart.resize();
+                skillsChart.resize();
+                studyTimeChart.resize();
+                vocabularyChart.resize();
+            });
+        }
+    </script>
+</body>
+</html>
